@@ -13,23 +13,23 @@
     --poll-bg: #f8f7f4;
     --poll-card: #ffffff;
     --poll-text: #2d2d2d;
-    --poll-accent: #4a90d9;
-    --poll-accent-hover: #3a7bc8;
-    --poll-muted: #8a8a8a;
+    --poll-accent: #2563eb;
+    --poll-accent-hover: #1d4ed8;
+    --poll-muted: #6b7280;
     --poll-border: #e8e6e1;
     --poll-shadow: 0 2px 20px rgba(0,0,0,0.06);
 
     --warn-bg: #0a0a0a;
-    --warn-red: #ff2b2b;
-    --warn-red-dim: #cc0000;
+    --warn-red: #f97316;
+    --warn-red-dim: #c2410c;
     --warn-text: #e0e0e0;
-    --warn-amber: #ffaa00;
+    --warn-amber: #facc15;
 
     --debrief-bg: #1a1a2e;
     --debrief-card: #16213e;
     --debrief-text: #e0e0e0;
-    --debrief-accent: #4fc3f7;
-    --debrief-muted: #7a7a9a;
+    --debrief-accent: #38bdf8;
+    --debrief-muted: #94a3b8;
   }
 
   body {
@@ -275,8 +275,8 @@
   }
 
   @keyframes pulse-border {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,43,43,0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(255,43,43,0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(249,115,22,0); }
   }
 
   .warn-title {
@@ -402,8 +402,8 @@
       0deg,
       transparent 0px,
       transparent 2px,
-      rgba(255,43,43,0.06) 2px,
-      rgba(255,43,43,0.06) 4px
+      rgba(249,115,22,0.06) 2px,
+      rgba(249,115,22,0.06) 4px
     );
     animation: scanDrift 0.8s linear forwards;
   }
@@ -416,7 +416,7 @@
       linear-gradient(
         180deg,
         transparent 0%,
-        rgba(255,43,43,0.08) 30%,
+        rgba(249,115,22,0.08) 30%,
         transparent 60%
       );
     animation: scanBar 0.8s ease-out forwards;
@@ -455,8 +455,8 @@
   .debrief-badge {
     display: inline-block;
     padding: 6px 14px;
-    background: rgba(79, 195, 247, 0.1);
-    border: 1px solid rgba(79, 195, 247, 0.25);
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
     border-radius: 100px;
     font-size: 12px;
     font-weight: 600;
@@ -512,8 +512,8 @@
     margin-top: 40px;
     padding: 20px;
     border-radius: 12px;
-    background: rgba(79, 195, 247, 0.05);
-    border: 1px solid rgba(79, 195, 247, 0.15);
+    background: rgba(56, 189, 248, 0.05);
+    border: 1px solid rgba(56, 189, 248, 0.15);
   }
 
   .debrief-reassurance p {
