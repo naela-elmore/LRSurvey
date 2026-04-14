@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quick Campus Poll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --poll-bg: #f8f7f4;
+    --poll-card: #ffffff;
+    --poll-text: #2d2d2d;
+    --poll-accent: #4a90d9;
+    --poll-accent-hover: #3a7bc8;
+    --poll-muted: #8a8a8a;
+    --poll-border: #e8e6e1;
+    --poll-shadow: 0 2px 20px rgba(0,0,0,0.06);
+
+    --warn-bg: #0a0a0a;
+    --warn-red: #ff2b2b;
+    --warn-red-dim: #cc0000;
+    --warn-text: #e0e0e0;
+    --warn-amber: #ffaa00;
+
+    --debrief-bg: #1a1a2e;
+    --debrief-card: #16213e;
+    --debrief-text: #e0e0e0;
+    --debrief-accent: #4fc3f7;
+    --debrief-muted: #7a7a9a;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color 0.3s;
+  }
+
+  /* ========== PHASE 1: POLL ========== */
+  #poll-phase {
+    min-height: 100vh;
+    background: var(--poll-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .poll-container {
+    max-width: 520px;
+    width: 100%;
+  }
+
+  .poll-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .poll-emoji {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .poll-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--poll-text);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .poll-subtitle {
+    font-size: 15px;
+    color: var(--poll-muted);
+    line-height: 1.5;
+  }
+
+  .poll-card {
+    background: var(--poll-card);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--poll-shadow);
+    border: 1px solid var(--poll-border);
+  }
+
+  .poll-question {
+    margin-bottom: 24px;
+  }
+
+  .poll-question:last-of-type {
+    margin-bottom: 28px;
+  }
+
+  .poll-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--poll-text);
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+  }
+
+  .poll-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .poll-option {
+    padding: 10px 18px;
+    border: 1.5px solid var(--poll-border);
+    border-radius: 100px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--poll-text);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .poll-option:hover {
+    border-color: var(--poll-accent);
+    color: var(--poll-accent);
+  }
+
+  .poll-option.selected {
+    background: var(--poll-accent);
+    border-color: var(--poll-accent);
+    color: white;
+  }
+
+  .poll-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--poll-border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--poll-text);
+    background: transparent;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .poll-input:focus {
+    border-color: var(--poll-accent);
+  }
+
+  .poll-input::placeholder {
+    color: var(--poll-muted);
+  }
+
+  .poll-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--poll-accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .poll-submit:hover {
+    background: var(--poll-accent-hover);
+  }
+
+  .poll-submit:active {
+    transform: scale(0.98);
+  }
+
+  .poll-footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--poll-muted);
+  }
+
+  /* ========== LOADING TRANSITION ========== */
+  #loading-phase {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--poll-bg);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--poll-border);
+    border-top-color: var(--poll-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    margin-top: 16px;
+    font-size: 15px;
+    color: var(--poll-muted);
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ========== PHASE 2: SURVEILLANCE REVEAL ========== */
+  #surveillance-phase {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--warn-bg);
+    z-index: 200;
+    overflow: hidden;
+  }
+
+  .glitch-overlay {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .surveillance-content {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+  }
+
+  .surveillance-content.visible {
+    opacity: 1;
+  }
+
+  .warn-icon {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--warn-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    animation: pulse-border 1.5s ease-in-out infinite;
+  }
+
+  .warn-icon svg {
+    width: 40px;
+    height: 40px;
+    fill: var(--warn-red);
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,43,43,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(255,43,43,0); }
+  }
+
+  .warn-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(18px, 5vw, 28px);
+    font-weight: 700;
+    color: var(--warn-red);
+    text-align: center;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    animation: flicker 3s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.6; }
+    97% { opacity: 1; }
+    98% { opacity: 0.4; }
+  }
+
+  .warn-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--warn-amber);
+    text-align: center;
+    margin-bottom: 36px;
+    letter-spacing: 1px;
+  }
+
+  .data-list {
+    max-width: 440px;
+    width: 100%;
+    list-style: none;
+  }
+
+  .data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  .data-item.revealed {
+    opacity: 1;
+    transform: translateX(0);
+    transition: all 0.4s ease-out;
+  }
+
+  .data-key {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--warn-red-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .data-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--warn-text);
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+  }
+
+  .warn-footer {
+    margin-top: 36px;
+    text-align: center;
+  }
+
+  .warn-stat {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(12px, 3.5vw, 15px);
+    color: var(--warn-amber);
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+  }
+
+  .warn-continue {
+    padding: 12px 32px;
+    background: transparent;
+    border: 1.5px solid var(--warn-red);
+    color: var(--warn-red);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .warn-continue:hover {
+    background: var(--warn-red);
+    color: white;
+  }
+
+  /* Glitch effect on transition */
+  .glitch-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    pointer-events: none;
+    display: none;
+    background: var(--warn-bg);
+  }
+
+  .glitch-flash.active {
+    display: block;
+    animation: glitchFade 0.8s ease-out forwards;
+  }
+
+  .glitch-flash.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,43,43,0.06) 2px,
+      rgba(255,43,43,0.06) 4px
+    );
+    animation: scanDrift 0.8s linear forwards;
+  }
+
+  .glitch-flash.active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(255,43,43,0.08) 30%,
+        transparent 60%
+      );
+    animation: scanBar 0.8s ease-out forwards;
+  }
+
+  @keyframes glitchFade {
+    0% { opacity: 0; }
+    15% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes scanDrift {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  @keyframes scanBar {
+    0% { transform: translateY(-50vh); opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  /* ========== PHASE 3: DEBRIEF ========== */
+  #debrief-phase {
+    display: none;
+    min-height: 100vh;
+    background: var(--debrief-bg);
+    padding: 24px;
+  }
+
+  .debrief-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 48px 0;
+  }
+
+  .debrief-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid rgba(79, 195, 247, 0.25);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--debrief-accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .debrief-title {
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: 600;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .debrief-lead {
+    font-size: 17px;
+    color: var(--debrief-text);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .debrief-card {
+    background: var(--debrief-card);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .debrief-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 10px;
+  }
+
+  .debrief-card p {
+    font-size: 14px;
+    color: var(--debrief-muted);
+    line-height: 1.7;
+  }
+
+  .debrief-card .stat-highlight {
+    color: var(--debrief-accent);
+    font-weight: 600;
+  }
+
+  .debrief-reassurance {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(79, 195, 247, 0.05);
+    border: 1px solid rgba(79, 195, 247, 0.15);
+  }
+
+  .debrief-reassurance p {
+    font-size: 14px;
+    color: var(--debrief-accent);
+    line-height: 1.6;
+  }
+
+  .debrief-reassurance .lock-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  /* ========== SCREEN-SHAKE ========== */
+  @keyframes screenShake {
+    0%, 100% { transform: translate(0,0); }
+    10% { transform: translate(-3px, 2px); }
+    20% { transform: translate(4px, -1px); }
+    30% { transform: translate(-2px, -3px); }
+    40% { transform: translate(3px, 2px); }
+    50% { transform: translate(-4px, 1px); }
+    60% { transform: translate(2px, -2px); }
+    70% { transform: translate(-3px, 3px); }
+    80% { transform: translate(4px, -1px); }
+    90% { transform: translate(-1px, 2px); }
+  }
+
+  .shake {
+    animation: screenShake 0.5s ease-in-out;
+  }
+</style>
+</head>
+<body>
+
+<!-- PHASE 1: INNOCENT POLL -->
+<div id="poll-phase">
+  <div class="poll-container">
+    <div class="poll-header">
+      <div class="poll-emoji">📊</div>
+      <h1 class="poll-title">Quick Campus Poll</h1>
+      <p class="poll-subtitle">Help Dr. Elmore understand what matters to students today. Takes 30 seconds!</p>
+    </div>
+    <div class="poll-card">
+      <div class="poll-question">
+        <label class="poll-label">Which social media platform do you use most?</label>
+        <div class="poll-options" data-question="social">
+          <button class="poll-option" data-value="TikTok">TikTok</button>
+          <button class="poll-option" data-value="Instagram">Instagram</button>
+          <button class="poll-option" data-value="X / Twitter">X / Twitter</button>
+          <button class="poll-option" data-value="YouTube">YouTube</button>
+          <button class="poll-option" data-value="Other">Other</button>
+        </div>
+      </div>
+
+      <div class="poll-question">
+        <label class="poll-label">What issue matters most to your generation?</label>
+        <div class="poll-options" data-question="issue">
+          <button class="poll-option" data-value="Climate">Climate</button>
+          <button class="poll-option" data-value="Economy">Economy</button>
+          <button class="poll-option" data-value="Privacy">Privacy</button>
+          <button class="poll-option" data-value="Equality">Equality</button>
+          <button class="poll-option" data-value="AI & Tech">AI & Tech</button>
+        </div>
+      </div>
+
+      <div class="poll-question">
+        <label class="poll-label">How many hours per day are you online?</label>
+        <div class="poll-options" data-question="hours">
+          <button class="poll-option" data-value="1-2">1–2</button>
+          <button class="poll-option" data-value="3-5">3–5</button>
+          <button class="poll-option" data-value="6-8">6–8</button>
+          <button class="poll-option" data-value="8+">8+</button>
+        </div>
+      </div>
+
+      <button class="poll-submit" id="submitBtn">Submit My Answers →</button>
+    </div>
+    <p class="poll-footer">Your responses help shape this lecture's dialogue.</p>
+  </div>
+</div>
+
+<!-- LOADING TRANSITION -->
+<div id="loading-phase">
+  <div class="loading-spinner"></div>
+  <p class="loading-text">Submitting your response...</p>
+</div>
+
+<!-- GLITCH FLASH OVERLAY -->
+<div class="glitch-flash" id="glitchFlash"></div>
+
+<!-- PHASE 2: SURVEILLANCE REVEAL -->
+<div id="surveillance-phase">
+  <div class="glitch-overlay"></div>
+  <div class="surveillance-content" id="surveillanceContent">
+    <div class="warn-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="none"/><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+    </div>
+    <h1 class="warn-title">Your Activity Has Been Logged</h1>
+    <p class="warn-subtitle">Digital Surveillance Bureau — Session Intercepted</p>
+
+    <ul class="data-list" id="dataList"></ul>
+
+    <div class="warn-footer">
+      <p class="warn-stat">In <strong>72 countries</strong>, this is not a simulation.</p>
+      <button class="warn-continue" id="continueBtn">What just happened? →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 3: DEBRIEF -->
+<div id="debrief-phase">
+  <div class="debrief-container">
+    <div class="debrief-badge">Simulation Complete</div>
+    <h1 class="debrief-title">This was a demonstration.<br>No data was stored.</h1>
+    <p class="debrief-lead">
+      Everything you just experienced — the friendly survey, the data collection, the sudden reveal —
+      mirrors the tactics used by authoritarian governments to monitor citizens online.
+      The only difference? You knew it was coming in under a minute.
+      For billions of people, the surveillance never announces itself.
+    </p>
+
+    <div class="debrief-card">
+      <h3>What did we actually detect?</h3>
+      <p>
+        Only information your browser <em>voluntarily shares</em> with every website you visit:
+        your device type, operating system, browser, language, screen size, and approximate location.
+        No cookies, no tracking pixels, no accounts.
+        This is the <span class="stat-highlight">minimum</span> footprint — governments with access to
+        ISP logs, telecom data, and surveillance technology see far more.
+      </p>
+    </div>
+
+    <div class="debrief-card">
+      <h3>Why does this matter?</h3>
+      <p>
+        Governments in countries like China, Saudi Arabia, Iran, and Egypt use sophisticated digital tools
+        to monitor social media, intercept messages, and track physical movements through phone data.
+        Internet shutdowns have occurred in <span class="stat-highlight">35+ countries</span> since 2019 —
+        entire populations cut off during elections, protests, and political crises.
+      </p>
+    </div>
+
+    <div class="debrief-card">
+      <h3>The question for today's class</h3>
+      <p>
+        If you felt a moment of surprise — or discomfort — at seeing your own data reflected back,
+        imagine living in a country where that feeling is constant, and the consequences are real.
+        <br><br>
+        <strong>How does digital surveillance reshape the relationship between citizens and the state?</strong>
+      </p>
+    </div>
+
+    <div class="debrief-reassurance">
+      <div class="lock-icon">🔒</div>
+      <p>
+        <strong>Privacy notice:</strong> This page runs entirely in your browser. No data was sent to any server,
+        no information was stored, and no tracking was involved. Close this tab and it's gone.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== POLL INTERACTION =====
+  document.querySelectorAll('.poll-options').forEach(group => {
+    group.querySelectorAll('.poll-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.poll-option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+  });
+
+  // ===== COLLECT DEVICE DATA =====
+  function collectData() {
+    const data = [];
+    const nav = navigator;
+    const screen = window.screen;
+
+    // Device
+    const ua = nav.userAgent;
+    let device = 'Unknown Device';
+    if (/iPhone/.test(ua)) device = 'Apple iPhone';
+    else if (/iPad/.test(ua)) device = 'Apple iPad';
+    else if (/Android/.test(ua)) {
+      const match = ua.match(/;\s*([^;)]+)\s*Build/);
+      device = match ? match[1].trim() : 'Android Device';
+    }
+    else if (/Macintosh/.test(ua)) device = 'Mac Computer';
+    else if (/Windows/.test(ua)) device = 'Windows PC';
+    else if (/Linux/.test(ua)) device = 'Linux Computer';
+    data.push({ key: 'Device', value: device });
+
+    // OS
+    let os = 'Unknown';
+    if (/iPhone OS (\d+[_\.]\d+)/.test(ua)) os = 'iOS ' + RegExp.$1.replace('_', '.');
+    else if (/Android (\d+\.?\d*)/.test(ua)) os = 'Android ' + RegExp.$1;
+    else if (/Mac OS X (\d+[_\.]\d+)/.test(ua)) os = 'macOS ' + RegExp.$1.replace(/_/g, '.');
+    else if (/Windows NT (\d+\.\d+)/.test(ua)) {
+      const v = RegExp.$1;
+      os = v === '10.0' ? 'Windows 10/11' : 'Windows';
+    }
+    data.push({ key: 'Operating System', value: os });
+
+    // Browser
+    let browser = 'Unknown';
+    if (/CriOS/.test(ua)) browser = 'Chrome (iOS)';
+    else if (/FxiOS/.test(ua)) browser = 'Firefox (iOS)';
+    else if (/EdgA|Edg\//.test(ua)) browser = 'Microsoft Edge';
+    else if (/Chrome\/(\d+)/.test(ua)) browser = 'Google Chrome v' + RegExp.$1;
+    else if (/Safari/.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+    else if (/Firefox\/(\d+)/.test(ua)) browser = 'Firefox v' + RegExp.$1;
+    data.push({ key: 'Browser', value: browser });
+
+    // Screen
+    data.push({ key: 'Screen Resolution', value: screen.width + ' × ' + screen.height + ' px' });
+
+    // Language
+    const lang = nav.language || nav.userLanguage || 'Unknown';
+    const langNames = {
+      'en': 'English', 'en-US': 'English (US)', 'en-GB': 'English (UK)',
+      'es': 'Spanish', 'fr': 'French', 'de': 'German', 'ar': 'Arabic',
+      'zh': 'Chinese', 'ja': 'Japanese', 'ko': 'Korean', 'pt': 'Portuguese',
+      'ru': 'Russian', 'hi': 'Hindi', 'it': 'Italian'
+    };
+    data.push({ key: 'Language', value: langNames[lang] || lang });
+
+    // Local time
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    data.push({ key: 'Local Time', value: timeStr + ', ' + dateStr });
+
+    // Timezone
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    data.push({ key: 'Timezone', value: tz });
+
+    // Connection
+    if (nav.connection) {
+      const conn = nav.connection;
+      let connStr = conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Unknown';
+      if (conn.downlink) connStr += ' (~' + conn.downlink + ' Mbps)';
+      data.push({ key: 'Connection', value: connStr });
+    }
+
+    // Battery
+    if (nav.getBattery) {
+      nav.getBattery().then(battery => {
+        const level = Math.round(battery.level * 100) + '%';
+        const charging = battery.charging ? ' (Charging)' : '';
+        const batteryItem = document.createElement('li');
+        batteryItem.className = 'data-item';
+        batteryItem.innerHTML = `<span class="data-key">Battery</span><span class="data-value">${level}${charging}</span>`;
+        const list = document.getElementById('dataList');
+        list.appendChild(batteryItem);
+        setTimeout(() => batteryItem.classList.add('revealed'), list.children.length * 250);
+      }).catch(() => {});
+    }
+
+    // Platform / CPU cores
+    if (nav.hardwareConcurrency) {
+      data.push({ key: 'CPU Cores', value: nav.hardwareConcurrency + ' cores detected' });
+    }
+
+    return data;
+  }
+
+  // ===== TRANSITION FLOW =====
+  const submitBtn = document.getElementById('submitBtn');
+
+  submitBtn.addEventListener('click', () => {
+    // Show loading
+    document.getElementById('poll-phase').style.display = 'none';
+    const loading = document.getElementById('loading-phase');
+    loading.style.display = 'flex';
+
+    setTimeout(() => {
+      // Change loading text
+      document.querySelector('.loading-text').textContent = 'Processing...';
+    }, 1200);
+
+    setTimeout(() => {
+      // Trigger glitch flash
+      loading.style.display = 'none';
+      const flash = document.getElementById('glitchFlash');
+      flash.classList.add('active');
+      document.body.classList.add('shake');
+
+      setTimeout(() => {
+        document.body.classList.remove('shake');
+      }, 500);
+
+      setTimeout(() => {
+        flash.classList.remove('active');
+
+        // Show surveillance phase
+        const surv = document.getElementById('surveillance-phase');
+        surv.style.display = 'block';
+
+        const content = document.getElementById('surveillanceContent');
+
+        setTimeout(() => {
+          content.classList.add('visible');
+
+          // Populate and reveal data items one by one
+          const data = collectData();
+          const list = document.getElementById('dataList');
+
+          data.forEach((item, i) => {
+            const li = document.createElement('li');
+            li.className = 'data-item';
+            li.innerHTML = `<span class="data-key">${item.key}</span><span class="data-value">${item.value}</span>`;
+            list.appendChild(li);
+
+            setTimeout(() => {
+              li.classList.add('revealed');
+            }, 400 + i * 300);
+          });
+        }, 200);
+      }, 600);
+    }, 2200);
+  });
+
+  // ===== CONTINUE TO DEBRIEF =====
+  document.getElementById('continueBtn').addEventListener('click', () => {
+    document.getElementById('surveillance-phase').style.display = 'none';
+    const debrief = document.getElementById('debrief-phase');
+    debrief.style.display = 'block';
+    window.scrollTo(0, 0);
+  });
+</script>
+</body>
+</html>
